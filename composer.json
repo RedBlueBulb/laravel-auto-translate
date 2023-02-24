@@ -27,7 +27,7 @@
         "illuminate/support": "^6.0",
         "scn/deepl-api-connector": "^3.0",
         "stichoza/google-translate-php": "^4.0",
-        "RedBlueBulb/laravel-langman": "dev-custom"
+        "themsaid/laravel-langman": "dev-custom"
     },
     "require-dev": {
         "orchestra/testbench": "3.6.* || 3.7.* || 3.8.*",
