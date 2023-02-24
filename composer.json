@@ -17,7 +17,7 @@
     ],
     "require": {
         "php": "^7.2",
-        "google/cloud": "^0.105.0",
+        "google/cloud": ">=0.105.0",
         "illuminate/support": "^6.0",
         "scn/deepl-api-connector": "^3.0",
         "stichoza/google-translate-php": "^4.0",
