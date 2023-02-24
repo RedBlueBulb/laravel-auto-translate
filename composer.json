@@ -7,13 +7,7 @@
     ],
     "homepage": "https://github.com/ben182/laravel-auto-translate",
     "license": "MIT",
-    "type": "library",
-    "repositories": [
-        {
-            "type": "vcs",
-            "url": "https://github.com/RedBlueBulb/laravel-langman"
-        }
-    ],    
+    "type": "library",   
     "authors": [
         {
             "name": "Ben",
