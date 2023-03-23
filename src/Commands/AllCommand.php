@@ -59,7 +59,11 @@ class AllCommand extends Command
         }
 
         $strLen = collect($dottedTranslations)->map(function ($value) {
-            return strlen($value);
+            if(!is_array($value)){
+                return strlen($value);
+            }
+
+            return 0;
         })->sum() * count($targetLanguages);
 
         $this->line($strLen.' characters will be translated');
