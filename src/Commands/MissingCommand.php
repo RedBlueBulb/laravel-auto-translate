@@ -44,48 +44,70 @@ class MissingCommand extends Command
     public function handle()
     {
         $targetLanguages = Arr::wrap(config('auto-translate.target_language'));
+        $paths = [config('auto-translate.path')];
 
-        $foundLanguages = count($targetLanguages);
-        $this->line('Found '.$foundLanguages.' '.Str::plural('language', $foundLanguages).' to translate');
-
-        $missingCount = 0;
-        $strLen = 0;
-        foreach ($targetLanguages as $targetLanguage) {
-            $missing = $this->autoTranslator->getMissingTranslations($targetLanguage);
-            $missingCount += $missing->count();
-            //$strLen += $missing->map(function ($value) {
-            //    return strlen($value);
-            //})->sum();
-            $this->line('Found '.$missing->count().' missing keys in '.$targetLanguage);
+        //Retrieve parent path
+        $parentPath = config('auto-translate.parent_path', '');
+        if($parentPath){
+            $iterator = new \DirectoryIterator($parentPath);
+            foreach($iterator as $fileinfo) {
+                if(!$fileinfo->isDot() && $fileinfo->isDir()){
+                    $paths[] = $fileinfo->getPathName();
+                }
+            }
         }
 
-        if ($missingCount === 0) {
-            $this->line('0 missing keys found...aborting');
+        foreach($paths as $path){
 
-            return;
+            //Override path
+			$this->autoTranslator->manager->setPath($path);
+
+            $foundLanguages = count($targetLanguages);
+            $this->line("Searching in $path");
+            $this->line('Found '.$foundLanguages.' '.Str::plural('language', $foundLanguages).' to translate');
+
+            $missingCount = 0;
+            $strLen = 0;
+            foreach ($targetLanguages as $targetLanguage) {
+                $missing = $this->autoTranslator->getMissingTranslations($targetLanguage);
+                $missingCount += $missing->count();
+                $strLen += $missing->map(function ($value) {
+                    if(!is_array($value)){
+                        return strlen($value);
+                    }
+
+                    return 0;
+                })->sum();
+                $this->line('Found '.$missing->count().' missing keys in '.$targetLanguage);
+            }
+
+            if ($missingCount === 0) {
+                $this->line('0 missing keys found...aborting');
+                continue;
+            }
+
+            $this->line($strLen.' characters will be translated');
+
+            if (! $this->confirm('Continue?', true)) {
+                continue;
+            }
+
+            $bar = $this->output->createProgressBar($missingCount);
+            $bar->start();
+
+            foreach ($targetLanguages as $targetLanguage) {
+                $missing = $this->autoTranslator->getMissingTranslations($targetLanguage);
+
+                $translated = $this->autoTranslator->translate($targetLanguage, $missing, function () use ($bar) {
+                    $bar->advance();
+                });
+
+                $this->autoTranslator->fillLanguageFiles($targetLanguage, $translated);
+            }
+
+            $bar->finish();
+
+            $this->info("\nTranslated ".$missingCount.' missing language keys.');
         }
-
-        //$this->line($strLen.' characters will be translated');
-
-        if (! $this->confirm('Continue?', true)) {
-            return;
-        }
-
-        $bar = $this->output->createProgressBar($missingCount);
-        $bar->start();
-
-        foreach ($targetLanguages as $targetLanguage) {
-            $missing = $this->autoTranslator->getMissingTranslations($targetLanguage);
-
-            $translated = $this->autoTranslator->translate($targetLanguage, $missing, function () use ($bar) {
-                $bar->advance();
-            });
-
-            $this->autoTranslator->fillLanguageFiles($targetLanguage, $translated);
-        }
-
-        $bar->finish();
-
-        $this->info("\nTranslated ".$missingCount.' missing language keys.');
     }
 }
