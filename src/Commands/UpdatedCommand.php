@@ -21,7 +21,7 @@ class UpdatedCommand extends Command
      *
      * @var string
      */
-    protected $description = 'Translates all source translations that have been recently updated';
+    protected $description = 'Translates all source translations that have been recently updated (including missing)';
 
     protected $autoTranslator;
 
@@ -69,7 +69,7 @@ class UpdatedCommand extends Command
             $missingCount = 0;
             $strLen = 0;
             foreach ($targetLanguages as $targetLanguage) {
-                $missing = $this->autoTranslator->getMissingTranslations($targetLanguage);
+                $missing = $this->autoTranslator->getUpdatedTranslations($targetLanguage);
                 $missingCount += $missing->count();
                 $strLen += $missing->map(function ($value) {
                     if(!is_array($value)){
@@ -78,11 +78,11 @@ class UpdatedCommand extends Command
 
                     return 0;
                 })->sum();
-                $this->line('Found '.$missing->count().' missing keys in '.$targetLanguage);
+                $this->line('Found '.$missing->count().' updated/missing keys in '.$targetLanguage);
             }
 
             if ($missingCount === 0) {
-                $this->line('0 missing keys found...aborting');
+                $this->line('0 updated/missing keys found...aborting');
                 continue;
             }
 
@@ -96,7 +96,7 @@ class UpdatedCommand extends Command
             $bar->start();
 
             foreach ($targetLanguages as $targetLanguage) {
-                $missing = $this->autoTranslator->getMissingTranslations($targetLanguage);
+                $missing = $this->autoTranslator->getUpdatedTranslations($targetLanguage);
 
                 $translated = $this->autoTranslator->translate($targetLanguage, $missing, function () use ($bar) {
                     $bar->advance();
@@ -107,7 +107,7 @@ class UpdatedCommand extends Command
 
             $bar->finish();
 
-            $this->info("\nTranslated ".$missingCount.' missing language keys.');
+            $this->info("\nTranslated ".$missingCount.' updated/missing language keys.');
         }
     }
 }

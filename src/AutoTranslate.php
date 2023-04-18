@@ -42,6 +42,45 @@ class AutoTranslate
         return $aReturn;
     }
 
+    public function getUpdatedTranslations(string $lang)
+    {
+        $sourceLang = config('auto-translate.source_language');
+        $sourceTranslations = $this->getSourceTranslations();
+
+        $files = $this->manager->files();
+        $langTranslations = [];
+        foreach ($files as $fileKeyName => $languagesFile) {
+            //If there is no corresponding file for this lang, continue
+            //(meaning the whole source lang file will get translated)
+            if (! isset($languagesFile[$lang])) {
+                continue;
+            }
+
+            //If there is no corresponding file for the source lang, continue
+            //(this should not happen)
+            if (! isset($languagesFile[$sourceLang])) {
+                continue;
+            }
+
+            //If the file for the source lang is newer than the file for this lang, continue
+            //(meaning the whole source lang file will get translated)
+            if(filemtime($languagesFile[$sourceLang]) > filemtime($languagesFile[$lang])){
+                continue;
+            }
+
+            //If we get here it should mean that no translation is necessary - so revert to MissingTranslations behaviour
+            $trans = $this->manager->getFileContent($languagesFile[$lang]);
+            $langTranslations[$fileKeyName] = $trans;
+        }
+
+        $dottedSource = Arr::dot($sourceTranslations);
+        $dottedlang = Arr::dot($langTranslations);
+
+        $diff = array_diff(array_keys($dottedSource), array_keys($dottedlang));
+
+        return collect($dottedSource)->only($diff);
+    }
+
     public function getMissingTranslations(string $lang)
     {
         $source = $this->getSourceTranslations();

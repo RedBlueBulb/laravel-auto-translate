@@ -6,6 +6,7 @@ use Themsaid\Langman\Manager;
 use Illuminate\Support\ServiceProvider;
 use Ben182\AutoTranslate\Commands\AllCommand;
 use Ben182\AutoTranslate\Commands\MissingCommand;
+use Ben182\AutoTranslate\Commands\UpdatedCommand;
 use Ben182\AutoTranslate\Translators\TranslatorInterface;
 
 class AutoTranslateServiceProvider extends ServiceProvider
@@ -24,6 +25,7 @@ class AutoTranslateServiceProvider extends ServiceProvider
             $this->commands([
                 AllCommand::class,
                 MissingCommand::class,
+                UpdatedCommand::class,
             ]);
         }
     }
